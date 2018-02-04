@@ -26,13 +26,22 @@ type FieldState = {
   meta: Meta,
 }
 
+type ValidateRule = <T>(value: T) => strinv | void
+
 
 type FieldProps<T: *> = {
   name: string,
   initialValue: T,
   component: React$Element<FieldElementProps>,
-  validate?: Array<(value: T) => strinv | void>,
+  validate?: Array<ValidateRule<T>>,
 }
+
+const getAllValidationErrors = <T: mixed>(validateRules: ValidateRule<T>[], value: T) =>
+  R.pipe(
+    R.map(rule => rule(value)),
+    R.filter(R.compose(R.not, R.isNil)),
+  )(validateRules);
+
 
 // export const withField = (options : WithFieldOptions) => <T: Object>(SourceComponent: T) =>
 export class Field extends React.Component<FieldProps, FieldState> {
@@ -43,6 +52,10 @@ export class Field extends React.Component<FieldProps, FieldState> {
 
   static contextTypes = {
     formData: PropTypes.object,
+  }
+
+  static defaultProps = {
+    validate: [],
   }
 
   getContextData(): WithFormContext {
@@ -86,6 +99,13 @@ export class Field extends React.Component<FieldProps, FieldState> {
     const { changeField } = this.getContextData();
     const { name } = this.props;
 
+    const errors = getAllValidationErrors(this.props.validate, value);
+
+    console.log(this.props.validate, errors);
+
+    if (errors.length > 0) {
+      this.setMetaValue({ invalid: true, errors });
+    }
     changeField(name, value);
   }
 
@@ -96,7 +116,7 @@ export class Field extends React.Component<FieldProps, FieldState> {
     const { component: Component, name } = this.props;
     const { values, metaFields } = this.getContextData();
 
-    const metaProps = metaFields[name];
+    const metaProps = metaFields[name] || {};
 
     const inputProps = {
       name,

@@ -1,15 +1,23 @@
 // @flow
 
 import React, { Component } from 'react';
+import * as R from 'ramda';
 import logo from './logo.svg';
 import { withForm, Field } from './pure-forms';
 
 import './App.css';
 
+const required = R.ifElse(
+  R.isEmpty,
+  () => 'Reqiered',
+  () => undefined,
+);
+
 const Input = ({ input, meta }) => (
   <div>
     { JSON.stringify(input) }{ JSON.stringify(meta) }
     <input { ...input } value={ input.value || '' } onChange={ (event) => input.onChange(event.target.value) } />
+    <span style={{ color: 'red' }}>{ meta.errors }</span>
   </div>
 );
 
@@ -22,7 +30,7 @@ const TestForm = withForm()(class TestForm extends Component<*> {
         <div>
           { JSON.stringify(this.props) }
         </div>
-        <Field name="field1" component={ Input } />
+        <Field name="field1" validate={ [required] } component={ Input } />
         <Field name="field2" component={ Input } />
         <Field name="field3" component={ Input } />
       </div>

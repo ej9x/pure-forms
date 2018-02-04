@@ -53,7 +53,7 @@ const getInitialMetaField = (name: string, initial: mixed): MetaField => ({
   initial,
   active: false,
   dirty: false,
-  error: '',
+  errors: [],
   invalid: false,
   pristine: true,
   touched: false,
